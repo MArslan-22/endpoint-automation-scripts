@@ -1,0 +1,52 @@
+name: Daily Contribution Logger
+
+on:
+  schedule:
+    - cron: '30 5 * * *'  # Runs every day at 5:30 AM UTC (10:30 AM PKT)
+  workflow_dispatch:  # Allows manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-log:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update daily log
+        run: |
+          mkdir -p logs
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          DAY_OF_WEEK=$(date -u '+%A')
+          
+          # Create or append to monthly log file
+          MONTH_FILE="logs/$(date -u '+%Y-%m').md"
+          
+          if [ ! -f "$MONTH_FILE" ]; then
+            echo "# Automation Log - $(date -u '+%B %Y')" > "$MONTH_FILE"
+            echo "" >> "$MONTH_FILE"
+            echo "| Date | Day | Status |" >> "$MONTH_FILE"
+            echo "|------|-----|--------|" >> "$MONTH_FILE"
+          fi
+          
+          echo "| $TIMESTAMP | $DAY_OF_WEEK | :white_check_mark: Active |" >> "$MONTH_FILE"
+          
+          # Update the counter file
+          COUNT_FILE="logs/total_runs.txt"
+          if [ -f "$COUNT_FILE" ]; then
+            COUNT=$(cat "$COUNT_FILE")
+            COUNT=$((COUNT + 1))
+          else
+            COUNT=1
+          fi
+          echo "$COUNT" > "$COUNT_FILE"
+
+      - name: Commit and push
+        run: |
+          git config user.name "Muhammad Arslan"
+          git config user.email "76181925+MArslan-22@users.noreply.github.com"
+          git add -A
+          git diff --quiet --cached || git commit -m "chore: daily log update $(date -u '+%Y-%m-%d')"
+          git push
