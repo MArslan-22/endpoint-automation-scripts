@@ -1,0 +1,11 @@
+# Logs
+logs/
+*.log
+
+# Local environment / system files
+.DS_Store
+Thumbs.db
+
+# Personal settings
+.vscode/
+.idea/
